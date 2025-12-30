@@ -1,0 +1,455 @@
+function onOpen() {
+  var ui = SpreadsheetApp.getUi();
+  // Or DocumentApp, SlidesApp or FormApp.
+  ui.createMenu('Game Setup')
+      .addItem('PlayerOne Ready', 'playerOneBoard')
+      .addItem('PlayerTwo Ready', 'playerTwoBoard')
+      .addItem('Reset Board', 'resetBoard')
+      .addToUi();
+      
+}
+
+
+PLAYER_ONE = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AD2").getValue()
+PLAYER_TWO = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AD13").getValue()
+
+
+POINT_SYSTEM_LARGESHIP = 3
+POINT_SYSTEM_MED_SHIP = 3
+POINT_SYSTEM_SMALL_SHIP = 3
+
+HEALTH_SYSTEM_LARGESHIP = 24
+HEALTH_SYSTEM_MED_SHIP = 27
+HEALTH_SYSTEM_SMALL_SHIP = 24
+
+TOTAL_POINTS = HEALTH_SYSTEM_LARGESHIP + HEALTH_SYSTEM_MED_SHIP + HEALTH_SYSTEM_SMALL_SHIP
+
+PLAYER_ONE_SCORE = 0
+PLAYER_ONE_HITS = 0
+PLAYER_ONE_MISS = 0
+
+
+PLAYER_ONE_SHOT_TRACKER = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AF6").getValue()
+PLAYER_TWO_SHOT_TRACKER = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AF17").getValue()
+
+
+PLAYER_ONE_HIT_TRACKER = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE5").getValue()
+PLAYER_TWO_HIT_TRACKER = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE16").getValue()
+
+
+PLAYER_ONE_MISSES_TRACKER = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE7").getValue()
+PLAYER_TWO_MISSES_TRACKER = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE18").getValue()
+
+
+
+HIT_VAR = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE10").setValue("HIT!").setBackground("red").setFontColor("white")
+
+
+MISS_VAR = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE10").setValue("MISS!").setBackground("#ffdd00").setFontColor("white")
+
+PENDING_VAR = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE10").setValue("PENDING").setBackground("#ffb703").setFontColor("white")
+
+
+
+function checkHitResult(){
+  MISS_VAR
+}
+
+
+
+function winningChecker(valueOfPlayer){
+
+  var ui = SpreadsheetApp.getUi(); // Or DocumentApp.getUi(), FormApp.getUi()
+
+  var playerIdentifier = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE9").getValue()
+
+  var totalPointOfShips = HEALTH_SYSTEM_LARGESHIP + HEALTH_SYSTEM_MED_SHIP + HEALTH_SYSTEM_SMALL_SHIP
+  
+  Logger.log(totalPointOfShips)
+
+  if(valueOfPlayer >= totalPointOfShips) {
+      ui.alert(`${playerIdentifier} is the winner!`);
+    }
+  Logger.log(playerIdentifier)
+
+
+}
+
+function pointChecker(player, hitEvaluater) {
+
+  if(hitEvaluater) {
+
+
+    var playerOneCurrentPoint = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE4").getValue()
+    var playerTwoCurrentPoint = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE15").getValue()
+
+    var playOneNewPoint = playerOneCurrentPoint + POINT_SYSTEM_LARGESHIP
+    var playTwoNewPoint = playerTwoCurrentPoint + POINT_SYSTEM_LARGESHIP
+
+      if(player == PLAYER_TWO && hitEvaluater == true) {
+        winningChecker(playTwoNewPoint)
+        return SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE15").setValue(playTwoNewPoint)
+      } else if(player == PLAYER_ONE && hitEvaluater == true) {
+        winningChecker(playOneNewPoint)
+        return SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE4").setValue(playOneNewPoint)
+      }
+    } 
+}
+
+
+function shotCounter(player, shot){
+
+  SHOT_COUNTER = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AD9").getValue()
+  if(player == PLAYER_ONE && shot) {
+    PLAYER_ONE_SHOT_TRACKER++
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AF6").setValue(PLAYER_ONE_SHOT_TRACKER)
+  }
+
+  if(player == PLAYER_TWO && shot) {
+    PLAYER_TWO_SHOT_TRACKER++
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AF17").setValue(PLAYER_TWO_SHOT_TRACKER)
+  }
+  
+
+  var playerTurnCheck = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE9").getValue()
+
+
+  if(playerTurnCheck === '') {
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE9").setValue(PLAYER_TWO)
+  }
+
+  SHOT_COUNTER++
+  if(shot && SHOT_COUNTER < 6){
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AD9").setBackground(null)
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AD9").setValue(SHOT_COUNTER)
+  } 
+  
+  if (SHOT_COUNTER > 4){
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AD9").setBackground("red")
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AD10").setBackground("red").setFontColor("white").setValue("CHANGE TURNS")
+
+  }
+
+  if (SHOT_COUNTER > 5){
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AD10").setBackground(null).setFontColor(null).setValue("")
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AD9").setBackground(null)
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AD9").setValue(1)
+    
+    if(playerTurnCheck == PLAYER_ONE) {
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE9").setValue(PLAYER_TWO)
+    } else if (playerTurnCheck == PLAYER_TWO){
+      SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE9").setValue(PLAYER_ONE)
+    }
+  }
+
+}
+
+function missCounter(playerName){
+   // Shot Missed tracker 
+    PLAYER_TWO_MISSES_TRACKER++
+
+
+    if(playerName === PLAYER_ONE) {
+      return SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE7").setValue(PLAYER_ONE_MISSES_TRACKER)
+    }
+
+    if(playerName === PLAYER_TWO) {
+      return SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE18").setValue(PLAYER_TWO_MISSES_TRACKER)
+    }
+}
+
+function onEdit(e){
+
+  var range = e.range
+  var sheet = range.getSheet();
+  var sheetName = sheet.getName();
+  var onEditRow = range.getRow()
+  var onEditColumn = range.getColumn()
+  var onEditValue = e.value
+
+
+  Logger.log(range)
+  Logger.log(sheet)
+  Logger.log(sheetName)
+  Logger.log(onEditRow)
+  Logger.log(onEditColumn)
+  Logger.log(onEditValue)
+
+  // var playerOneRangeCheck = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("B2:Y11")
+  var playerOneOnEditCheck = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(onEditRow,onEditColumn).getValue()
+  var playerTwoOnEditCheck = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(onEditRow,onEditColumn).getValue()
+
+  var playerOneHitCheck = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("playerOne").getRange(onEditRow,onEditColumn).getValue()
+  var playerTwoHitCheck = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("playerTwo").getRange(onEditRow,onEditColumn).getValue()
+
+
+  // var positionCheckOne = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(sheetName).getRange(onEditRow, onEditRow)
+  
+  //The two check an compare it the RangeValues match
+  Logger.log(`This is you number: ${playerOneOnEditCheck}` )
+  Logger.log(`Was there a ship: ${playerOneHitCheck}`)
+
+
+
+  if(sheetName != "mainGameBoard") {
+    Logger.log("You've edited on the following sheet " + sheetName)
+    return
+  }
+
+  if(playerOneOnEditCheck === true && playerOneHitCheck === true){
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(onEditRow,onEditColumn).setBackground("red")
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(onEditRow,onEditColumn).setFontColor("red")
+    
+     //Tell us if we've hit the a ship
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE10").setValue("HIT!").setBackground("red").setFontColor("white")
+
+
+    shotCounter(PLAYER_TWO,true)
+    pointChecker(PLAYER_TWO, true)
+
+    
+    
+
+    PLAYER_TWO_HIT_TRACKER++
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE16").setValue(PLAYER_TWO_HIT_TRACKER)
+
+    var shipPartsLeftPlayerOne = TOTAL_POINTS - PLAYER_TWO_HIT_TRACKER
+
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE17").setValue(shipPartsLeftPlayerOne)
+
+
+  } else if (playerTwoOnEditCheck === true && playerOneHitCheck === false) {
+    shotCounter(PLAYER_TWO, true)
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(onEditRow,onEditColumn).setBackground("yellow")
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(onEditRow,onEditColumn).setFontColor("yellow")
+    
+    //Tell us if we've missed the a ship
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE10").setValue("MISS!").setBackground("#ffdd00").setFontColor("white")
+
+    // Shot Missed tracker 
+    PLAYER_TWO_MISSES_TRACKER++
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE18").setValue(PLAYER_TWO_MISSES_TRACKER)
+
+  } else if (playerTwoOnEditCheck === false && playerOneHitCheck === false) {
+    shotCounter(true)
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(onEditRow,onEditColumn).setBackground("#4285f4")
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(onEditRow,onEditColumn).setFontColor("#4285f4")
+    
+    //Tell us if we've missed the a ship
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE10").setValue("MISS!").setBackground("#ffdd00").setFontColor("white")
+
+
+   
+
+
+  } else if (playerTwoOnEditCheck === false && playerOneHitCheck === true) {
+    // shotCounter(true)
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(onEditRow,onEditColumn).setBackground("#4285f4")
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(onEditRow,onEditColumn).setFontColor("#4285f4")
+
+  } 
+
+
+
+  if(playerOneOnEditCheck === true && playerTwoHitCheck === true){
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(onEditRow,onEditColumn).setBackground("red")
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(onEditRow,onEditColumn).setFontColor("red")
+
+      //Tell us if we've hit the a ship
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE10").setValue("HIT!").setBackground("red").setFontColor("white")
+  shotCounter(PLAYER_ONE, true)
+  pointChecker(PLAYER_ONE, true)
+
+  // Counts the amounts of hits for PlayerOne 
+  PLAYER_ONE_HIT_TRACKER++
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE5").setValue(PLAYER_ONE_HIT_TRACKER)
+  
+  // Counts the ship amount that is left PlayerOne 
+  var shipPartsLeftPlayerTwo = TOTAL_POINTS - PLAYER_ONE_HIT_TRACKER
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE6").setValue(shipPartsLeftPlayerTwo)
+
+  } else if (playerOneOnEditCheck === true && playerTwoHitCheck === false) {
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(onEditRow,onEditColumn).setBackground("yellow")
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(onEditRow,onEditColumn).setFontColor("yellow")
+    shotCounter(PLAYER_ONE,true)
+    //Tell us if we've missed the a ship
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE10").setValue("MISS!").setBackground("orange").setFontColor("white")
+
+    // Shot Missed tracker 
+    PLAYER_ONE_MISSES_TRACKER++
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE7").setValue(PLAYER_ONE_MISSES_TRACKER)
+
+
+  } else if (playerOneOnEditCheck === false && playerTwoHitCheck === false) {
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(onEditRow,onEditColumn).setBackground("#4285f4")
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(onEditRow,onEditColumn).setFontColor("#4285f4")
+    shotCounter(true)
+
+    //Tell us if we've missed the a ship
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE10").setValue("MISS!").setBackground("#ffdd00").setFontColor("white")
+
+
+  } else if (playerOneOnEditCheck === false && playerTwoHitCheck === true) {
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(onEditRow,onEditColumn).setBackground("#4285f4")
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(onEditRow,onEditColumn).setFontColor("#4285f4")
+    shotCounter(true)
+  } 
+ 
+  
+}
+
+function resetBoard() {
+
+  //Setting all checkboxes on the Gameplayboard to FALSE
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("B2:Y11").setValue(false)
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("B13:Y22").setValue(false)
+
+
+  //Setting scores back to 0
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE15").setValue(0)
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE4").setValue(0)
+
+
+
+  // changing the colors back to it's original colors
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("B2:Y11").setBackground("#4285f4")
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("B2:Y11").setFontColor(null)
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("B13:Y22").setBackground("#4285f4")
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("B13:Y22").setFontColor(null)
+
+
+  // Reset the hit marker for the the round
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE5").setValue(0)
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE16").setValue(0)
+
+  // Reset Shot Counter 
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AD9").setValue(0).setBackground(null)
+  
+
+  // Reset Ships Blocks Left Counter 
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE6").setValue(0)
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE17").setValue(0)
+
+  // Reset missed shots
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE7").setValue(0)
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE18").setValue(0)
+
+
+  // main player shot counter
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AF6").setValue(0)
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AF17").setValue(0)
+
+  // check for changing turns - reset
+  SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AD10").setBackground(null).setFontColor(null).setValue("")
+
+  pointChecker(false)
+
+}
+
+
+function mainGameBoard() {
+
+  var mainPlayBoardPlayerOne = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("B2:Y11").getValues().flat()
+  var playerOneShipPlacement = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("playerOne").getRange("B2:Y11").getValues().flat()
+
+
+  for(let i = 0; i < playerOneShipPlacement.length; i++){
+    // Logger.log(playerOneShipPlacement[i])
+
+    if(playerOneShipPlacement[i] == true){
+      mainPlayBoardPlayerOne[i] = true;
+      SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange(i + 1,i + 1).setBackground("red")
+      // Logger.log(mainPlayBoardPlayerOne[i])
+    
+    }
+  }
+
+  Logger.log(mainPlayBoardPlayerOne)
+  Logger.log(playerOneShipPlacement)
+
+  
+}
+
+
+function playerOneBoard(playOneLayout) {
+
+  var ui = SpreadsheetApp.getUi(); // Or DocumentApp.getUi(), FormApp.getUi()
+  
+  // pull the range of ship tracker for PlayerOne
+  var checkAllPositions = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("playerOne").getRange("AK4:AS13").getValues()
+
+  // checking that the range that is being pulled only checks true statements
+  var shipPosition = checkAllPositions.flat().filter(item => typeof item === 'boolean')
+
+  if(shipPosition.includes(false) && !shipPosition.includes(true)) {
+    ui.alert('Place all your ships before proceeding!');
+    Logger.log(`Place all your ships before proceeding!: ${shipPosition}`)
+  }
+
+
+  var playerName = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AD2").getValue()
+  // var playerName = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AD13").getValue()
+
+
+  Logger.log(playerName)
+
+
+  if(!shipPosition.includes(false)) {
+    Logger.log(`Player One is ready: ${shipPosition}`)
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE3").setValue("TRUE").setBackground("green")
+    ui.alert(`${playerName} is ready to proceed`);
+  }
+
+  if(shipPosition.includes(false) && shipPosition.includes(true)){
+    ui.alert('You still have place some ships');
+    Logger.log(`You still have place some ships: ${shipPosition}`)
+  }
+ 
+  // checks the range of PlayerOne's gameboard of where the ships have been placed
+  var playOneBoardLayout = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("playerOne").getRange("B2:Y11").getValues().flat()
+
+  Logger.log(playOneBoardLayout)
+
+  return playOneBoardLayout
+
+}
+
+
+function playerTwoBoard(playerTwoLayout) {
+  var ui = SpreadsheetApp.getUi(); // Or DocumentApp.getUi(), FormApp.getUi()
+  
+  // pull the range of ship tracker for PlayerOne
+  var checkAllPositions = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("playerTwo").getRange("AK4:AS13").getValues()
+
+  // checking that the range that is being pulled only checks true statements
+  var shipPosition = checkAllPositions.flat().filter(item => typeof item === 'boolean')
+
+  if(shipPosition.includes(false) && !shipPosition.includes(true)) {
+    ui.alert('Place all your ships before proceeding!');
+    Logger.log(`Place all your ships before proceeding!: ${shipPosition}`)
+  }
+
+  var playerName = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AD13").getValue()
+
+  Logger.log(playerName)
+
+
+  if(!shipPosition.includes(false)) {
+    Logger.log(`Player Two is ready: ${shipPosition}`)
+    SpreadsheetApp.getActiveSpreadsheet().getSheetByName("mainGameBoard").getRange("AE14").setValue("TRUE").setBackground("green")
+    ui.alert(`${playerName} is ready to proceed`);
+  }
+
+  if(shipPosition.includes(false) && shipPosition.includes(true)){
+    ui.alert('You still have place some ships');
+    Logger.log(`You still have place some ships: ${shipPosition}`)
+  }
+ 
+  // checks the range of PlayerOne's gameboard of where the ships have been placed
+  var playerTwoBoardLayout = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("playerTwo").getRange("B13:Y22").getValues().flat()
+
+  Logger.log(playerTwoBoardLayout)
+
+  return playerTwoBoardLayout
+}
+
